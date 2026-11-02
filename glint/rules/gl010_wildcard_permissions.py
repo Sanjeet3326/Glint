@@ -62,7 +62,8 @@ class WildcardPermissions(Rule):
         if not isinstance(perms, dict):
             return []
         allow = perms.get("allow")
-        deny = perms.get("deny") if isinstance(perms.get("deny"), list) else []
+        raw_deny = perms.get("deny")
+        deny: list[object] = raw_deny if isinstance(raw_deny, list) else []
         if not isinstance(allow, list):
             return []
         protects_secrets = any(_SENSITIVE_DENY.search(str(d)) for d in deny)
