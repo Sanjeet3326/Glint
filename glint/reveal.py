@@ -104,9 +104,37 @@ def _chars(chunk: str) -> tuple[str, str, int, int]:
     return "".join(human), "".join(agent), hidden, parts
 
 
-def render_side_by_side(result: RevealResult, width: int) -> str:
-    """Render both views in two columns (or stacked on narrow terminals)."""
+class _Highlighter:
+    """Colour hidden parts red, even when one part wraps over several rows."""
+
+    def __init__(self, colour: bool) -> None:
+        self.colour = colour
+        self.inside = False
+
+    def __call__(self, line: str) -> str:
+        if not self.colour:
+            return line
+        out: list[str] = ["\033[1;31m"] if self.inside else []
+        for ch in line:
+            if ch == _MARK_OPEN:
+                self.inside = True
+                out.append("\033[1;31m")
+            out.append(ch)
+            if ch == _MARK_CLOSE:
+                self.inside = False
+                out.append("\033[0m")
+        if self.inside:
+            out.append("\033[0m")
+        return "".join(out)
+
+
+def render_side_by_side(result: RevealResult, width: int, colour: bool = False) -> str:
+    """Render both views in two columns (or stacked on narrow terminals).
+
+    With ``colour``, hidden parts in the agent view are shown in red.
+    """
     summary = summary_line(result)
+    highlight = _Highlighter(colour)
     if width < 90:
         return "\n".join(
             [
@@ -114,7 +142,7 @@ def render_side_by_side(result: RevealResult, width: int) -> str:
                 result.human.rstrip("\n"),
                 "",
                 "=== Agent reads " + "=" * max(0, width - 16),
-                result.agent.rstrip("\n"),
+                "\n".join(highlight(line) for line in result.agent.rstrip("\n").split("\n")),
                 "",
                 summary,
             ]
@@ -129,7 +157,7 @@ def render_side_by_side(result: RevealResult, width: int) -> str:
         for row in range(max(len(left), len(right))):
             lval = left[row] if row < len(left) else ""
             rval = right[row] if row < len(right) else ""
-            lines.append(f"{lval:<{col}} | {rval}".rstrip())
+            lines.append(f"{lval:<{col}} | {highlight(rval)}".rstrip())
     lines.extend(["", summary])
     return "\n".join(lines)
 
