@@ -3,6 +3,15 @@
 All notable changes to this project are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-02
+
+### Added
+
+- Desktop app: `glint gui [PATH]` (or `glint-gui`, which opens without a console on Windows). Scan a
+  folder, filter and search findings, read evidence, fixes and attack stories, open a side-by-side
+  Reveal view of hidden text, and export HTML, JSON or SARIF. Built on tkinter from the standard
+  library, so Glint still has no dependencies.
+
 ## [0.2.1] - 2026-11-02
 
 ### Changed

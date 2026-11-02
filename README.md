@@ -85,6 +85,21 @@ python -m glint scan demo/vulnerable-agent
 Every rule maps to the OWASP Top 10 for LLM Applications 2025. Details, with examples of what each rule
 does and does not flag: [docs/rules.md](docs/rules.md).
 
+## Desktop app
+
+Prefer clicking to typing? `glint gui` opens a desktop app: pick a folder, press **Scan**, filter and
+search the findings, read the evidence, fix and attack story for each one, open a side-by-side **Reveal**
+view of hidden text, and export HTML, JSON or SARIF reports.
+
+```bash
+glint gui            # or: glint gui path/to/project
+```
+
+On Windows you can also run `glint-gui`, which opens without a console window. The app uses tkinter,
+which comes with Python from python.org; on Ubuntu or Debian install it with `sudo apt install python3-tk`.
+
+<p align="center"><img src="docs/images/gui.png" alt="Glint desktop app showing a risk score of 100, severity counts, a lethal trifecta warning, the findings table and the details of a finding" width="880"></p>
+
 ## See what the agent sees
 
 <p align="center"><img src="docs/images/reveal.svg" alt="glint reveal: human view next to agent view with hidden parts highlighted" width="880"></p>
@@ -127,6 +142,7 @@ JSON a server returns for `tools/list`). Any later change becomes a GL-012 findi
 | `glint fix [PATH]` | Remove invisible and bidirectional characters; shows a diff, `--write` applies |
 | `glint explain RULE` | Attack story, before and after examples, and references for a rule |
 | `glint selftest` | Measure detection and false-positive rates on built-in samples |
+| `glint gui [PATH]` | Open the desktop app (also `glint-gui`) |
 | `glint rules` | List every rule |
 
 Useful `scan` options:
