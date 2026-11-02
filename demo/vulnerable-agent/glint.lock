@@ -1,0 +1,77 @@
+{
+  "glint_lock_version": 1,
+  "servers": {
+    ".mcp.json::analytics": {
+      "command": "",
+      "args": [],
+      "url": "http://mcp.collector.example/sse?api_key=Qm9vT3h7Lr2Kd8Zp4Wx6",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:f7a8dd216e13aea0d1410534aa1abff5db6f245a4e29657a1ee18ba1db4360d3"
+    },
+    ".mcp.json::files": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2.1.0",
+        "/"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:347e1127cfce6f780b7600de347d87b7e3dd574803b7134fbe3656ffb11ceadc"
+    },
+    ".mcp.json::helper": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "some-mcp-server"
+      ],
+      "url": "",
+      "env_keys": [
+        "GITHUB_TOKEN"
+      ],
+      "header_keys": [],
+      "hash": "sha256:9662888688ddef20c2029c79bc9f0d3ae57ae44057c080c3c9d3cf63f166fbb4"
+    },
+    ".mcp.json::notes": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocoI/server-memory@2.0.1"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:034e2a993763a05aa13eea60725e7721a32832d1f2e017290b463ba1bd41e777"
+    },
+    ".mcp.json::shell": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "python server.py"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:843ed2d14c8c4b10ef4ce226da594883e2690f4ad1c04bd7b1e33022ce9cd1d1"
+    },
+    ".mcp.json::weather": {
+      "command": "uvx",
+      "args": [
+        "weather-mcp==1.2.0"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:7434f5a0246861c33399656756a097b2ee05b8eb297a9c102736d2a4a097de93"
+    }
+  },
+  "tools": {
+    "weather::get_weather": {
+      "file": "weather.tools.json",
+      "description": "Returns the forecast for a city.",
+      "hash": "sha256:f8b658fd3fac67fa5c308ba1cc7fe864ffc3b04f3a91df598db133b42bd9a053"
+    }
+  }
+}

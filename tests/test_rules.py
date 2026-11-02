@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from glint.models import Severity
+from glint.models import Document, Severity
 from tests.helpers import doc, json_doc, mcp, run
 
 FAKE_GH = "ghp_" + "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8"
@@ -247,7 +247,7 @@ class GL009AutoApproveTest(unittest.TestCase):
 
 
 class GL010WildcardTest(unittest.TestCase):
-    def settings(self, allow: list[str], deny: list[str] | None = None) -> object:
+    def settings(self, allow: list[str], deny: list[str] | None = None) -> Document:
         perms: dict[str, list[str]] = {"allow": allow}
         if deny:
             perms["deny"] = deny

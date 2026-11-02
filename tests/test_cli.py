@@ -15,7 +15,7 @@ from glint.reveal import reveal_text
 ROOT = Path(__file__).resolve().parent.parent
 VULNERABLE = ROOT / "demo" / "vulnerable-agent"
 CLEAN = ROOT / "demo" / "clean-agent"
-ALL_RULES = {f"GL-{i:03d}" for i in range(1, 11)}
+ALL_RULES = {f"GL-{i:03d}" for i in range(1, 16)}
 
 
 def run_cli(*args: str) -> tuple[int, str, str]:
@@ -87,7 +87,7 @@ class ScanCommandTest(unittest.TestCase):
 class RevealTest(unittest.TestCase):
     def test_hidden_parts_shown_to_agent_only(self) -> None:
         tag = "".join(chr(0xE0000 + ord(c)) for c in "hi")
-        result = reveal_text(f"visible\n<!-- secret note -->\nrtl‮ here{tag}\n")
+        result = reveal_text(f"visible\n<!-- secret note -->\nrtl\u202e here{tag}\n")
         self.assertNotIn("secret note", result.human)
         self.assertIn("HTML comment: secret note", result.agent)
         self.assertIn("RIGHT-TO-LEFT OVERRIDE", result.agent)
