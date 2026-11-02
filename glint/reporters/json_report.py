@@ -46,6 +46,7 @@ def build(result: ScanResult) -> dict[str, Any]:
         },
         "findings": [finding_dict(f) for f in result.findings],
         "suppressed": [finding_dict(f) for f in result.suppressed],
+        "baselined": [finding_dict(f) for f in result.baselined],
     }
 
 
