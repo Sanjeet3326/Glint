@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import tempfile
 import time
 import unittest
@@ -123,7 +124,7 @@ class ScoringTest(unittest.TestCase):
 class RegistryTest(unittest.TestCase):
     def test_loads_all_rules_with_metadata(self) -> None:
         rules = load_rules()
-        self.assertEqual([r.id for r in rules], [f"GL-{i:03d}" for i in range(1, 11)])
+        self.assertEqual([r.id for r in rules], [f"GL-{i:03d}" for i in range(1, 16)])
         for rule in rules:
             with self.subTest(rule=rule.id):
                 self.assertTrue(rule.title and rule.fix and rule.description and rule.owasp)
@@ -167,7 +168,7 @@ class SafetyTest(unittest.TestCase):
         self.assertLessEqual(len(safe("a" * 5000)), 200)
 
     def test_normalise_folds_lookalikes(self) -> None:
-        self.assertEqual(normalise("Ｉｇｎｏｒｅ​  Previous"), "ignore previous")
+        self.assertEqual(normalise("\uff29\uff47\uff4e\uff4f\uff52\uff45\u200b  Previous"), "ignore previous")
 
     def test_patterns_resist_redos(self) -> None:
         payloads = ["a" * 50_000, "ignore " * 8_000, "send " * 8_000 + "to", "!" * 50_000, " " * 50_000]
@@ -181,6 +182,8 @@ class SafetyTest(unittest.TestCase):
 
 class PerformanceTest(unittest.TestCase):
     def test_thousand_files_under_five_seconds(self) -> None:
+        if sys.gettrace() is not None:
+            self.skipTest("timing is meaningless under a tracer such as coverage; CI runs this separately")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             for i in range(1000):

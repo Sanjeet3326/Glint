@@ -9,5 +9,18 @@
       "Read(./.env)",
       "Read(~/.ssh/**)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ruff format --quiet ."
+          }
+        ]
+      }
+    ]
   }
 }

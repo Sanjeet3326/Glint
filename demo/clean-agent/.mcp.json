@@ -4,28 +4,20 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-filesystem@2025.8.21",
+        "@modelcontextprotocol/server-filesystem@2.1.0",
         "./docs"
       ]
     },
-    "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_TOKEN",
-        "ghcr.io/github/github-mcp-server:v0.13.0"
-      ],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
-    "fetch": {
+    "time": {
       "command": "uvx",
       "args": [
-        "mcp-server-fetch==2025.4.7"
+        "mcp-server-time==2026.10.28"
+      ]
+    },
+    "weather": {
+      "command": "uvx",
+      "args": [
+        "weather-mcp==1.2.0"
       ]
     }
   }

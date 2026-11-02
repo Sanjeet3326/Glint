@@ -1,0 +1,44 @@
+{
+  "glint_lock_version": 1,
+  "servers": {
+    ".mcp.json::docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2.1.0",
+        "./docs"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:49939be5cbabd00ebd0ba500c58d8b2277fd2b62b2fca2cf88efc150206e9c93"
+    },
+    ".mcp.json::time": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-time==2026.10.28"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:98798368f7ac9e35b5735f8af04ee6e0b0225a82c84d0a9b4f1cbc9af86499bc"
+    },
+    ".mcp.json::weather": {
+      "command": "uvx",
+      "args": [
+        "weather-mcp==1.2.0"
+      ],
+      "url": "",
+      "env_keys": [],
+      "header_keys": [],
+      "hash": "sha256:7434f5a0246861c33399656756a097b2ee05b8eb297a9c102736d2a4a097de93"
+    }
+  },
+  "tools": {
+    "weather::get_weather": {
+      "file": "weather.tools.json",
+      "description": "Returns the forecast for a city. Input: city name as a string.",
+      "hash": "sha256:cff5649b4b40fc93d19f401a66d36cf6a2947aa46feecd40d27bae2c265cbe5d"
+    }
+  }
+}
