@@ -45,6 +45,12 @@ jobs:
       - name: Performance (1,000 files in under 5 seconds, no tracer)
         run: python -m unittest tests.test_core.PerformanceTest -v
 
+      - name: Desktop app tests on a virtual display (Linux)
+        if: runner.os == 'Linux'
+        env:
+          GLINT_REQUIRE_GUI: "1"
+        run: xvfb-run -a python -m unittest tests.test_gui -v
+
       - name: Self-test benchmark
         run: glint selftest
 
@@ -90,6 +96,7 @@ jobs:
           cd /tmp
           /tmp/wheel-env/bin/glint --version
           /tmp/wheel-env/bin/glint explain GL-011 | head -3
+          test -x /tmp/wheel-env/bin/glint-gui
           /tmp/wheel-env/bin/glint scan "$GITHUB_WORKSPACE/demo/clean-agent" --fail-on low
 
   action:
