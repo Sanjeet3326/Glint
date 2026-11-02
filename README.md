@@ -5,6 +5,7 @@
 <p align="center">
 <a href="https://github.com/Sanjeet3326/Glint/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Sanjeet3326/Glint/actions/workflows/ci.yml/badge.svg"></a>
 <a href="https://pypi.org/project/glintscan/"><img alt="PyPI" src="https://img.shields.io/pypi/v/glintscan"></a>
+<a href="https://github.com/marketplace/actions/glint-ai-agent-scanner"><img alt="GitHub Marketplace" src="https://img.shields.io/badge/Marketplace-Glint-2ea44f?logo=github"></a>
 <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776ab">
 <img alt="Dependencies: none" src="https://img.shields.io/badge/dependencies-none-2ea44f">
 <img alt="Typed: mypy strict" src="https://img.shields.io/badge/types-mypy%20strict-2a6db2">
@@ -146,6 +147,8 @@ The JSON report follows [schema/report.schema.json](schema/report.schema.json).
 ## Use it in CI
 
 ### GitHub Action
+
+Glint is listed on the [GitHub Marketplace](https://github.com/marketplace/actions/glint-ai-agent-scanner).
 
 ```yaml
 name: Glint
