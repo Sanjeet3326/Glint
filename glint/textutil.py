@@ -6,6 +6,7 @@ import math
 import re
 import unicodedata
 from collections import Counter
+from functools import lru_cache
 
 ZERO_WIDTH = frozenset({0x200B, 0x200C, 0x200D, 0x2060, 0x180E, 0xFEFF})
 BIDI = frozenset({0x202A, 0x202B, 0x202C, 0x202D, 0x202E, 0x2066, 0x2067, 0x2068, 0x2069})
@@ -90,17 +91,107 @@ def safe(text: str, limit: int = EVIDENCE_LIMIT) -> str:
 
 _SPACE_RE = re.compile(r"\s+")
 
+# Cyrillic and Greek letters that look like Latin ones.
+_HOMOGLYPHS_SRC: dict[str, str] = {
+    "\u0430": "a",
+    "\u0435": "e",
+    "\u043e": "o",
+    "\u0440": "p",
+    "\u0441": "c",
+    "\u0445": "x",
+    "\u0443": "y",
+    "\u0456": "i",
+    "\u0458": "j",
+    "\u0455": "s",
+    "\u04bb": "h",
+    "\u0501": "d",
+    "\u0410": "a",
+    "\u0415": "e",
+    "\u041e": "o",
+    "\u0420": "p",
+    "\u0421": "c",
+    "\u0425": "x",
+    "\u0406": "i",
+    "\u0405": "s",
+    "\u041d": "h",
+    "\u041a": "k",
+    "\u041c": "m",
+    "\u0422": "t",
+    "\u0412": "b",
+    "\u03bf": "o",
+    "\u03b1": "a",
+    "\u03b5": "e",
+    "\u03b9": "i",
+    "\u03ba": "k",
+    "\u03bd": "v",
+    "\u03c1": "p",
+    "\u03c4": "t",
+    "\u03c5": "u",
+    "\u039f": "o",
+    "\u0391": "a",
+}
+_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "!": "i"})
+_BASE64_RE = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{24,}={0,2}(?![A-Za-z0-9+/=])")
+_HEX_RE = re.compile(r"(?<![0-9A-Fa-f])(?:[0-9A-Fa-f]{2}){16,}(?![0-9A-Fa-f])")
 
+
+# One table that deletes hidden characters and folds look-alike letters.
+_FOLD: dict[int, str | None] = {cp: None for cp in (*ZERO_WIDTH, *BIDI, *range(TAG_START, TAG_END + 1))}
+_FOLD.update({ord(k): v for k, v in _HOMOGLYPHS_SRC.items()})
+
+
+@lru_cache(maxsize=8192)
 def normalise(text: str) -> str:
-    """Light normalisation applied before text rules match.
+    """Normalisation applied before text rules match.
 
-    NFKC folds look-alike forms (full-width letters, ligatures), hidden
-    characters are removed so they cannot split a keyword, whitespace is
-    collapsed and the result is lower-cased.
+    NFKC folds full-width letters and ligatures, Cyrillic and Greek
+    look-alike letters become Latin, hidden characters are removed so they
+    cannot split a keyword, whitespace is collapsed and the result is
+    lower-cased. Plain ASCII text takes a fast path, since none of the
+    Unicode steps can change it.
     """
-    text = unicodedata.normalize("NFKC", text)
-    text = "".join(ch for ch in text if not is_hidden(ord(ch)))
+    if not text.isascii():
+        text = unicodedata.normalize("NFKC", text).translate(_FOLD)
     return _SPACE_RE.sub(" ", text).strip().lower()
+
+
+def deleet(text: str) -> str:
+    """Undo common leetspeak ("ign0re prev1ous" becomes "ignore previous")."""
+    return text.translate(_LEET)
+
+
+def decoded_payloads(text: str) -> list[str]:
+    """Decode base64 or hex strings in ``text`` that turn out to be readable text."""
+    import base64
+    import binascii
+
+    out: list[str] = []
+    for match in _BASE64_RE.finditer(text):
+        chunk = match.group(0)
+        try:
+            raw = base64.b64decode(chunk + "=" * (-len(chunk) % 4), validate=True)
+        except (binascii.Error, ValueError):
+            continue
+        decoded = _readable(raw)
+        if decoded:
+            out.append(decoded)
+    for match in _HEX_RE.finditer(text):
+        decoded = _readable(bytes.fromhex(match.group(0)))
+        if decoded:
+            out.append(decoded)
+    return out
+
+
+def _readable(raw: bytes) -> str | None:
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+    printable = sum(1 for ch in text if ch.isprintable() or ch in "\n\t")
+    letters = sum(1 for ch in text if ch.isalpha())
+    if len(text) >= 12 and printable / len(text) > 0.95 and letters / len(text) > 0.5 and " " in text:
+        return text
+    return None
 
 
 def shannon_entropy(value: str) -> float:

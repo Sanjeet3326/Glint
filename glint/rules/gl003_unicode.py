@@ -25,6 +25,8 @@ class InvisibleUnicode(Rule):
         """Report each line that contains hidden characters."""
         findings: list[Finding] = []
         for line_no, line in text_lines(doc):
+            if line.isascii():
+                continue  # every character this rule looks for is outside ASCII
             found: dict[int, None] = {}
             severity = Severity.MEDIUM
             for col, ch in enumerate(line):
