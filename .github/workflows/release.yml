@@ -71,9 +71,8 @@ jobs:
           fi
 
   pypi:
-    # Publishing needs a trusted publisher set up on pypi.org first; then set the
-    # repository variable PUBLISH_TO_PYPI to "true".
-    if: vars.PUBLISH_TO_PYPI == 'true'
+    # Publishes with PyPI trusted publishing (no stored token). PyPI only accepts uploads
+    # from this repository, this workflow file and the "pypi" environment.
     needs: build
     runs-on: ubuntu-latest
     environment: pypi

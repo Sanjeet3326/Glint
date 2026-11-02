@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-11-02
+
+### Changed
+
+- Releases are now published to PyPI automatically: `pip install glintscan`.
+- CI uses `actions/checkout` v7.0.1 and `actions/setup-python` v7.1.0.
+
 ## [0.2.0] - 2026-11-02
 
 ### Added
