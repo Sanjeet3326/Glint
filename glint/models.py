@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import IntEnum
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 
@@ -153,15 +153,56 @@ class Rule(ABC):
         fix: str | None = None,
     ) -> Finding:
         """Build a :class:`Finding` for this rule with sensible defaults."""
+        return self.finding_at(doc.path, line, message, evidence, severity=severity, confidence=confidence, fix=fix)
+
+    def finding_at(
+        self,
+        path: PurePosixPath,
+        line: int,
+        message: str,
+        evidence: str,
+        *,
+        severity: Severity | None = None,
+        confidence: Confidence = Confidence.HIGH,
+        fix: str | None = None,
+    ) -> Finding:
+        """Build a :class:`Finding` for an explicit file path."""
         return Finding(
             rule_id=self.id,
             title=self.title,
             severity=severity or self.default_severity,
             confidence=confidence,
-            path=doc.path,
+            path=path,
             line=max(line, 1),
             message=message,
             evidence=evidence,
             fix=fix or self.fix,
             owasp=self.owasp,
         )
+
+
+@dataclass
+class Project:
+    """Every document of one scan, for rules that reason across files."""
+
+    root: Path
+    docs: list[Document]
+    capability_overrides: dict[str, list[str]] = field(default_factory=dict)
+    lock: dict[str, Any] | None = None
+    lock_path: PurePosixPath | None = None
+
+    def of_kind(self, *kinds: str) -> list[Document]:
+        """Documents whose kind is one of ``kinds``."""
+        return [d for d in self.docs if d.kind in kinds]
+
+
+class ProjectRule(Rule):
+    """A rule that looks at the whole project at once (for example, tool combinations)."""
+
+    def check(self, doc: Document) -> list[Finding]:
+        """Project rules do not run per document."""
+        return []
+
+    @abstractmethod
+    def check_project(self, project: Project) -> list[Finding]:
+        """Return every finding for the project."""

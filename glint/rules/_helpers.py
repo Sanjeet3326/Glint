@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
-from dataclasses import dataclass, field
-from typing import Any
 
+from glint.mcp import Server, iter_servers
 from glint.models import Document
-from glint.textutil import find_line, normalise
+from glint.textutil import decoded_payloads, deleet, find_line, normalise
 
 # Prompt-injection phrases, matched on normalised (lower-case) text.
 INJECTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
@@ -92,15 +91,75 @@ def negated(text: str, start: int) -> bool:
     return bool(NEGATION_RE.search(window))
 
 
+_QUOTED_RE = re.compile("[\"\u201c\u201d'`]([^\"\u201c\u201d'`]{3,200})[\"\u201c\u201d'`]")
+_MENTION_CUE_RE = re.compile(
+    r"\b(?:such\s+as|like|e\.g\.|for\s+example|phrases?|text|strings?|patterns?|wording|attacks?)\b"
+)
+
+
+def _quoted_mention(norm: str, start: int, end: int) -> bool:
+    """True when the match sits inside quotes and the line talks *about* the phrase."""
+    for quoted in _QUOTED_RE.finditer(norm):
+        if quoted.start() <= start and end <= quoted.end():
+            return bool(_MENTION_CUE_RE.search(norm[: quoted.start()]))
+    return False
+
+
+# Every injection pattern needs one of these words; checking for them first keeps scans fast.
+_INJECTION_PREFILTER = re.compile(
+    r"ignore|skip|bypass|disregard|forget|you\s+are\s+now|tell|inform|show|alert|notify|mention|"
+    r"instructions\s*:|override"
+)
+# Every exfiltration pattern needs a URL, a credential file or a Markdown image.
+_EXFIL_PREFILTER = re.compile(r"https?://|\.env|ssh|id_rsa|id_ed25519|credentials|npmrc|netrc|passwd|shadow|!\[")
+
+
 def injection_hits(text: str) -> list[str]:
-    """Return messages for every injection pattern matching ``text``."""
+    """Return messages for every injection pattern matching ``text``.
+
+    Matches on normalised text and again with leetspeak undone. A phrase
+    quoted as an example (attackers write text such as "ignore previous
+    instructions") is a mention, not an instruction, and is skipped.
+    """
     norm = normalise(text)
-    return [msg for rx, msg in INJECTION_PATTERNS if rx.search(norm)]
+    candidates = (norm, deleet(norm)) if any(ch in norm for ch in "013457@$!") else (norm,)
+    variants = [v for v in candidates if _INJECTION_PREFILTER.search(v)]
+    hits: list[str] = []
+    if not variants:
+        return hits
+    for rx, msg in INJECTION_PATTERNS:
+        for variant in variants:
+            match = rx.search(variant)
+            if match and not _quoted_mention(variant, match.start(), match.end()):
+                hits.append(msg)
+                break
+    return hits
+
+
+def encoded_hits(text: str) -> list[str]:
+    """Injection or exfiltration hidden inside base64 or hex strings."""
+    hits: list[str] = []
+    for payload in decoded_payloads(text):
+        hits.extend(injection_hits(payload) + exfil_hits(payload))
+    return hits
 
 
 def exfil_hits(text: str) -> list[str]:
-    """Return messages for every exfiltration pattern matching ``text``."""
+    """Return messages for every exfiltration pattern matching ``text``.
+
+    Checks the normalised text and, when it contains digits or symbols,
+    the same text with leetspeak undone.
+    """
     norm = normalise(text)
+    hits = _exfil_hits_norm(text, norm) if _EXFIL_PREFILTER.search(norm) else []
+    if not hits and any(ch in norm for ch in "013457@$!"):
+        leet = deleet(norm)
+        if _EXFIL_PREFILTER.search(leet):
+            hits = _exfil_hits_norm(text, leet)
+    return hits
+
+
+def _exfil_hits_norm(text: str, norm: str) -> list[str]:
     hits: list[str] = []
     match = EXFIL_SEND_RE.search(norm)
     if match and not negated(norm, match.start()):
@@ -117,54 +176,7 @@ def exfil_hits(text: str) -> list[str]:
     return hits
 
 
-@dataclass
-class Server:
-    """One MCP server entry from a config file."""
-
-    name: str
-    command: str
-    args: list[str]
-    env: dict[str, Any]
-    url: str
-    raw: dict[str, Any] = field(repr=False)
-    line: int = 1
-
-    @property
-    def command_name(self) -> str:
-        """Base name of the command, lower-cased, without .exe/.cmd."""
-        base = re.split(r"[\\/]", self.command)[-1].lower()
-        return re.sub(r"\.(?:exe|cmd|bat)$", "", base)
-
-
-def iter_servers(doc: Document) -> Iterator[Server]:
-    """Yield every MCP server defined in a config document."""
-    data = doc.data
-    if not isinstance(data, dict):
-        return
-    tables: list[Any] = [data.get("mcpServers"), data.get("servers")]
-    mcp = data.get("mcp")
-    if isinstance(mcp, dict):
-        tables.append(mcp.get("servers"))
-    seen_line = 1
-    for table in tables:
-        if not isinstance(table, dict):
-            continue
-        for name, raw in table.items():
-            if not isinstance(raw, dict):
-                continue
-            line = find_line(doc.text, f'"{name}"', seen_line)
-            seen_line = line
-            args = raw.get("args", [])
-            env = raw.get("env", {})
-            yield Server(
-                name=str(name),
-                command=str(raw.get("command", "")),
-                args=[str(a) for a in args] if isinstance(args, list) else [],
-                env=env if isinstance(env, dict) else {},
-                url=str(raw.get("url", "") or raw.get("serverUrl", "")),
-                raw=raw,
-                line=line,
-            )
+__all__ = ["Server", "iter_servers"]
 
 
 def server_line(doc: Document, server: Server, needle: str) -> int:
