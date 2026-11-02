@@ -4,6 +4,7 @@
 
 <p align="center">
 <a href="https://github.com/Sanjeet3326/Glint/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Sanjeet3326/Glint/actions/workflows/ci.yml/badge.svg"></a>
+<a href="https://pypi.org/project/glintscan/"><img alt="PyPI" src="https://img.shields.io/pypi/v/glintscan"></a>
 <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776ab">
 <img alt="Dependencies: none" src="https://img.shields.io/badge/dependencies-none-2ea44f">
 <img alt="Typed: mypy strict" src="https://img.shields.io/badge/types-mypy%20strict-2a6db2">
@@ -39,10 +40,10 @@ with evidence and an attack story, and tells you how to fix it.
 ## Install
 
 ```bash
-pip install git+https://github.com/Sanjeet3326/Glint
+pip install glintscan
 ```
 
-Requires Python 3.11 or newer. Or run it from a clone with `python -m glint`.
+Requires Python 3.11 or newer. The command is `glint`. Or run it from a clone with `python -m glint`.
 
 ## Quick start
 
@@ -157,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: Sanjeet3326/Glint@v0.2.0
+      - uses: Sanjeet3326/Glint@v0.2.1
         id: glint
         with:
           fail-on: high
@@ -176,7 +177,7 @@ summary to the job page. Inputs: `path`, `fail-on`, `sarif-file`, `args` (for ex
 ```yaml
 repos:
   - repo: https://github.com/Sanjeet3326/Glint
-    rev: v0.2.0
+    rev: v0.2.1
     hooks:
       - id: glint
 ```
