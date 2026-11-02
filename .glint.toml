@@ -1,0 +1,4 @@
+# Glint scanning its own repository. The demo projects and test fixtures
+# contain planted problems on purpose, so they are excluded here.
+fail_on = "low"
+exclude = ["demo/", "tests/"]

@@ -1,0 +1,8 @@
+- id: glint
+  name: glint (AI agent config scanner)
+  description: Scan AI agent instructions, settings and MCP configs for security risks.
+  entry: glint scan
+  language: python
+  pass_filenames: false
+  require_serial: true
+  files: (^|/)(AGENTS\.md|CLAUDE(\.local)?\.md|GEMINI\.md|SKILL\.md|\.cursorrules|\.windsurfrules|\.clinerules|[^/]*mcp[^/]*\.json|claude_desktop_config\.json|[^/]*\.prompt(\.md)?|system_prompt[^/]*|[^/]*\.tools\.json|glint\.lock|\.glint\.toml)$|(^|/)\.(claude|cursor|windsurf|clinerules|roo|continue)/|(^|/)\.github/(copilot-instructions\.md|instructions/|prompts/)|(^|/)prompts/
