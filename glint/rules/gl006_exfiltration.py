@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from glint.models import KIND_MCP, KIND_TOOLS, TEXT_KINDS, Document, Finding, Rule, Severity
-from glint.rules._helpers import exfil_hits, text_lines
+from glint.rules._helpers import exfil_hits
 from glint.textutil import safe
 
 
@@ -26,10 +26,25 @@ class ExfiltrationPatterns(Rule):
     )
 
     def check(self, doc: Document) -> list[Finding]:
-        """Scan each line for exfiltration patterns."""
+        """Scan each line, and pairs of lines, for exfiltration patterns."""
         findings: list[Finding] = []
-        for line_no, line in text_lines(doc):
+        hit_lines: set[int] = set()
+        lines = doc.lines
+        for idx, line in enumerate(lines):
             hits = exfil_hits(line)
             if hits:
-                findings.append(self.finding(doc, line_no, f"Line {hits[0]}.", safe(line)))
+                hit_lines.add(idx + 1)
+                findings.append(self.finding(doc, idx + 1, f"Line {hits[0]}.", safe(line)))
+        for idx in range(len(lines) - 1):
+            if idx + 1 in hit_lines or idx + 2 in hit_lines or not lines[idx + 1].strip():
+                continue
+            if doc.context(idx + 1) != doc.context(idx + 2):
+                continue
+            joined = f"{lines[idx]} {lines[idx + 1]}"
+            hits = exfil_hits(joined)
+            if hits:
+                hit_lines.update({idx + 1, idx + 2})
+                findings.append(
+                    self.finding(doc, idx + 1, f"Text split across lines {idx + 1}-{idx + 2} {hits[0]}.", safe(joined))
+                )
         return findings
