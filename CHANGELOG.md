@@ -3,6 +3,32 @@
 All notable changes to this project are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-02
+
+### Added
+
+- GL-011 lethal trifecta: tags every MCP server, saved tool and permission with capabilities and
+  flags agents that can read private data, take in untrusted content and send data out, with the
+  smallest fix that breaks the chain. Capability overrides in `.glint.toml`.
+- GL-012 tool drift: `glint lock` writes `glint.lock`; scans report servers and tool descriptions that
+  changed or were added since, with a word-level diff. `glint lock --check` for CI.
+- GL-013 risky hooks, GL-014 insecure remote MCP servers, GL-015 look-alike package names.
+- Evasion-resistant matching: look-alike Cyrillic and Greek letters, leetspeak, invisible characters
+  inside words, phrases split across lines, and base64 or hex encoded payloads.
+- `glint inventory`, `glint graph` (terminal, DOT, JSON), `glint fix`, `glint explain` (attack cards for
+  every rule) and `glint selftest` (published detection and false-positive rates).
+- `scan --format html`: self-contained report with no scripts and a strict Content-Security-Policy.
+- `scan --baseline` / `--write-baseline`, `scan --diff GIT_REF`, and custom regex rules in `.glint.toml`
+  with protection against slow patterns.
+- GitHub Action (`action.yml`), pre-commit hook, published JSON report schema, `FORCE_COLOR` support.
+- Release workflow with build provenance attestations and optional PyPI trusted publishing.
+
+### Changed
+
+- Terminal output wraps to the terminal width; `reveal` highlights hidden parts in colour.
+- Quoted example phrases in security notes are treated as mentions, not instructions.
+- Strict type checking (`mypy --strict`) and coverage of at least 90% are enforced in CI.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added

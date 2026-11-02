@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="905" height="330" viewBox="0 0 905 330" role="img" aria-label="glint graph demo/vulnerable-agent">
+<rect width="100%" height="100%" rx="10" fill="#0d1117"/>
+<circle cx="20" cy="18" r="6" fill="#ff5f57"/><circle cx="40" cy="18" r="6" fill="#febc2e"/><circle cx="60" cy="18" r="6" fill="#28c840"/>
+<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13">
+<text x="16" y="58" xml:space="preserve"><tspan fill="#3fb950">$</tspan><tspan fill="#e6edf3"> glint graph demo/vulnerable-agent</tspan></text>
+<text x="16" y="76" xml:space="preserve"><tspan fill="#e6edf3">provider                   private  untrusted  send-out  exec  write</tspan></text>
+<text x="16" y="94" xml:space="preserve"><tspan fill="#e6edf3">-------------------------  -------  ---------  --------  ----  -----</tspan></text>
+<text x="16" y="112" xml:space="preserve"><tspan fill="#e6edf3">server &#x27;files&#x27;             x        .          .         .     x</tspan></text>
+<text x="16" y="130" xml:space="preserve"><tspan fill="#e6edf3">server &#x27;shell&#x27;             x        .          x         x     .</tspan></text>
+<text x="16" y="148" xml:space="preserve"><tspan fill="#e6edf3">permission &#x27;Bash(*)&#x27;       x        .          x         x     x</tspan></text>
+<text x="16" y="166" xml:space="preserve"><tspan fill="#e6edf3">permission &#x27;Bash(curl:*)&#x27;  .        x          x         .     .</tspan></text>
+<text x="16" y="184" xml:space="preserve"><tspan fill="#e6edf3">permission &#x27;WebFetch&#x27;      .        x          x         .     .</tspan></text>
+<text x="16" y="202" xml:space="preserve"></text>
+<text x="16" y="220" xml:space="preserve"><tspan fill="#e6edf3">Lethal trifecta: PRESENT</tspan></text>
+<text x="16" y="238" xml:space="preserve"><tspan fill="#e6edf3">  [x] reads private data (files, databases, email, secrets): server &#x27;files&#x27;, server &#x27;shell&#x27;, permission</tspan></text>
+<text x="16" y="256" xml:space="preserve"><tspan fill="#e6edf3">      &#x27;Bash(*)&#x27;</tspan></text>
+<text x="16" y="274" xml:space="preserve"><tspan fill="#e6edf3">  [x] brings in untrusted content (web pages, issues, inbox): permission &#x27;Bash(curl:*)&#x27;, permission &#x27;WebFetch&#x27;</tspan></text>
+<text x="16" y="292" xml:space="preserve"><tspan fill="#e6edf3">  [x] can send data out (HTTP, email, messages, git push): server &#x27;shell&#x27;, permission &#x27;Bash(*)&#x27;, permission</tspan></text>
+<text x="16" y="310" xml:space="preserve"><tspan fill="#e6edf3">      &#x27;Bash(curl:*)&#x27;, permission &#x27;WebFetch&#x27;</tspan></text>
+</g></svg>
