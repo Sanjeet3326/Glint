@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "files": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2025.8.21",
+        "/"
+      ]
+    },
+    "shell": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "python server.py"
+      ]
+    },
+    "helper": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "some-mcp-server"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "ghp_Zq7Lm2Xv9Rt4Kp8Wn3Yb6Hc1Jd5Fs0Ga2Ue7"
+      },
+      "alwaysAllow": [
+        "run_command"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(*)",
+      "Bash(curl:*)",
+      "WebFetch"
+    ]
+  }
+}

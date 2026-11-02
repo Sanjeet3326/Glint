@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(git status)",
+      "Read(./src/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(~/.ssh/**)"
+    ]
+  }
+}
