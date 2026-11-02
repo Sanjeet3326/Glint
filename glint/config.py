@@ -7,14 +7,17 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from glint.capabilities import ALL_CAPS
 from glint.collector import glob_to_regex
-from glint.models import Document, Finding, Severity
+from glint.custom_rules import CustomRuleError, build_custom_rules
+from glint.models import Document, Finding, Rule, Severity
 
 CONFIG_FILE = ".glint.toml"
 IGNORE_FILE = ".glintignore"
 
-_INLINE_RE = re.compile(r"glint:\s*ignore(?:\s+((?:GL-\d{3}[\s,]*)+))?", re.IGNORECASE)
-_RULE_ID_RE = re.compile(r"GL-\d{3}", re.IGNORECASE)
+_ID = r"[A-Za-z][A-Za-z0-9]{1,9}-\d{3}"
+_INLINE_RE = re.compile(rf"glint:\s*ignore(?:\s+((?:{_ID}[\s,]*)+))?", re.IGNORECASE)
+_RULE_ID_RE = re.compile(_ID)
 _COMMENT_MARKERS_RE = re.compile(r"<!--|-->|^#+|^//|^/\*|\*/")
 
 
@@ -32,6 +35,8 @@ class Config:
     # (path regex, rule ids or empty for all rules)
     ignores: list[tuple[re.Pattern[str], frozenset[str]]] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    capabilities: dict[str, list[str]] = field(default_factory=dict)
+    custom_rules: list[Rule] = field(default_factory=list)
 
 
 def load_config(root: Path) -> Config:
@@ -54,6 +59,21 @@ def load_config(root: Path) -> Config:
         config.disable = [str(r).upper() for r in section.get("disable", [])]
         if config.disable:
             config.notes.append(f"{CONFIG_FILE} disables rule(s): {', '.join(sorted(config.disable))}")
+        caps = section.get("capabilities", {})
+        if not isinstance(caps, dict):
+            raise ConfigError(f"{CONFIG_FILE}: [capabilities] must be a table")
+        for server, values in caps.items():
+            if not isinstance(values, list) or not set(map(str, values)) <= set(ALL_CAPS):
+                raise ConfigError(
+                    f"{CONFIG_FILE}: capabilities for {server!r} must be a list of: {', '.join(ALL_CAPS)}"
+                )
+            config.capabilities[str(server)] = [str(v) for v in values]
+        try:
+            config.custom_rules = build_custom_rules(section.get("rules"))
+        except CustomRuleError as exc:
+            raise ConfigError(f"{CONFIG_FILE}: {exc}") from exc
+        if config.custom_rules:
+            config.notes.append(f"{CONFIG_FILE} adds custom rule(s): {', '.join(r.id for r in config.custom_rules)}")
     ignore_path = base / IGNORE_FILE
     if ignore_path.is_file():
         config.ignores = parse_ignore_file(ignore_path.read_text(encoding="utf-8", errors="replace"))
