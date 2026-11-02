@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "glintscan"
-version = "0.2.1"
+version = "0.3.0"
 description = "Offline security scanner for AI agent configs, prompts and MCP servers."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,6 +32,9 @@ dev = ["ruff>=0.6", "mypy>=1.10", "coverage>=7.5", "build>=1.2"]
 
 [project.scripts]
 glint = "glint.cli:main"
+
+[project.gui-scripts]
+glint-gui = "glint.gui:main"
 
 [project.urls]
 Homepage = "https://github.com/Sanjeet3326/glint"
@@ -64,6 +67,8 @@ python_version = "3.11"
 [tool.coverage.run]
 source = ["glint"]
 branch = true
+# The window code needs a display; CI tests it separately under xvfb (see ci.yml).
+omit = ["glint/gui.py"]
 
 [tool.coverage.report]
 fail_under = 90

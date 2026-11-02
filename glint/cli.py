@@ -91,6 +91,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("selftest", help="measure detection and false-positive rates on built-in samples")
     p.add_argument("--markdown", action="store_true", help="print a Markdown table")
 
+    p = sub.add_parser("gui", help="open the Glint desktop app")
+    p.add_argument("path", nargs="?", help="folder to scan when the app opens")
+
     sub.add_parser("rules", help="list every rule")
     sub.add_parser("version", help="print the version")
     return parser
@@ -114,6 +117,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "fix": _cmd_fix,
         "explain": _cmd_explain,
         "selftest": _cmd_selftest,
+        "gui": _cmd_gui,
         "rules": _cmd_rules,
         "version": _cmd_version,
     }
@@ -302,6 +306,12 @@ def _cmd_selftest(args: argparse.Namespace) -> int:
     result = run_selftest()
     print(render_selftest(result, markdown=args.markdown))
     return EXIT_OK
+
+
+def _cmd_gui(args: argparse.Namespace) -> int:
+    from glint.gui import run  # imported lazily: tkinter is optional
+
+    return run(args.path)
 
 
 def _cmd_rules(args: argparse.Namespace) -> int:
