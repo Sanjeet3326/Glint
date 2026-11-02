@@ -86,6 +86,10 @@ class OutputModesTest(unittest.TestCase):
         self.assertIn("\033[1;31m", coloured)
         plain = terminal.render(result, colour=False, width=70)
         self.assertTrue(all(len(line) <= 70 for line in plain.splitlines()))
+        # A very long scan path must wrap too.
+        result.root = "/a/very/long/path/" * 10
+        long_root = terminal.render(result, colour=False, width=70)
+        self.assertTrue(all(len(line) <= 70 for line in long_root.splitlines()))
 
     def test_force_and_no_color(self) -> None:
         with mock.patch.dict(os.environ, {"FORCE_COLOR": "1", "NO_COLOR": ""}):

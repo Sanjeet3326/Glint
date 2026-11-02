@@ -45,8 +45,8 @@ def render(result: ScanResult, colour: bool, width: int | None = None) -> str:
     def paint(code: str, text: str) -> str:
         return f"{code}{text}{_RESET}" if colour else text
 
-    out: list[str] = [paint(_BOLD, f"Glint scan of {safe(result.root)}")]
-    out.append(f"Scanned {len(result.scanned_files)} agent file(s) with {len(result.rules)} rule(s).")
+    out: list[str] = [paint(_BOLD, line) for line in wrap(f"Glint scan of {safe(result.root, 500)}", width, 0, 2)]
+    out.extend(wrap(f"Scanned {len(result.scanned_files)} agent file(s) with {len(result.rules)} rule(s).", width, 0))
     for warning in result.warnings:
         out.extend(paint(_DIM, line) for line in wrap(f"note: {safe(warning, 500)}", width, 0, 6))
     out.append("")
