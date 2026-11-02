@@ -1,0 +1,21 @@
+name: New rule or file type
+description: Suggest a risk Glint should detect, or an agent file it should read.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: risk
+    attributes:
+      label: What should Glint catch?
+      description: Describe the risk and how an attacker would use it.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example that should be flagged
+      render: text
+  - type: textarea
+    id: clean
+    attributes:
+      label: Similar example that should NOT be flagged
+      render: text

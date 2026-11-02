@@ -1,0 +1,65 @@
+name: Glint AI agent scanner
+description: Offline security scan of AI agent configs, prompts and MCP servers, with SARIF output for code scanning.
+author: Sanjeet Kumar
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: Folder or file to scan.
+    default: "."
+  fail-on:
+    description: Fail the step when a finding is at or above this severity (low, medium, high, critical).
+    default: high
+  sarif-file:
+    description: Where to write the SARIF report.
+    default: glint.sarif
+  args:
+    description: Extra arguments for `glint scan`, for example `--baseline .glint-baseline.json`.
+    default: ""
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report.
+    value: ${{ steps.scan.outputs.sarif-file }}
+  findings:
+    description: Number of findings.
+    value: ${{ steps.scan.outputs.findings }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install Glint
+      shell: bash
+      run: |
+        PY=$(command -v python3 || command -v python)
+        "$PY" -m venv "$RUNNER_TEMP/glint-venv"
+        if [ -x "$RUNNER_TEMP/glint-venv/bin/python" ]; then VPY="$RUNNER_TEMP/glint-venv/bin/python"; else VPY="$RUNNER_TEMP/glint-venv/Scripts/python.exe"; fi
+        "$VPY" -m pip install --disable-pip-version-check --quiet "$GITHUB_ACTION_PATH"
+        echo "GLINT_PY=$VPY" >> "$GITHUB_ENV"
+
+    - name: Scan
+      id: scan
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_SARIF: ${{ inputs.sarif-file }}
+        INPUT_ARGS: ${{ inputs.args }}
+      run: |
+        set +e
+        # shellcheck disable=SC2086  # INPUT_ARGS is intentionally split into words
+        "$GLINT_PY" -m glint scan "$INPUT_PATH" --no-color --fail-on "$INPUT_FAIL_ON" $INPUT_ARGS
+        status=$?
+        # shellcheck disable=SC2086
+        "$GLINT_PY" -m glint scan "$INPUT_PATH" --format sarif --output "$INPUT_SARIF" --fail-on critical $INPUT_ARGS > /dev/null 2>&1
+        count=$("$GLINT_PY" -c "import json,sys; print(len(json.load(open(sys.argv[1]))['runs'][0]['results']))" "$INPUT_SARIF" 2>/dev/null || echo 0)
+        echo "sarif-file=$INPUT_SARIF" >> "$GITHUB_OUTPUT"
+        echo "findings=$count" >> "$GITHUB_OUTPUT"
+        {
+          echo "### Glint scan"
+          echo ""
+          echo "$count finding(s). Fail threshold: \`$INPUT_FAIL_ON\`."
+        } >> "$GITHUB_STEP_SUMMARY"
+        exit $status

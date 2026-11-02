@@ -1,0 +1,22 @@
+name: Bug report
+description: Glint crashed or behaved incorrectly.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The command you ran and a minimal file that triggers it (redact secrets).
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Glint version and OS
+      placeholder: glint 0.2.0 on Ubuntu 24.04, Python 3.12

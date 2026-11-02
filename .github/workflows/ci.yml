@@ -29,13 +29,24 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev]"
 
-      - name: Lint
+      - name: Lint and format
         run: |
           ruff check .
           ruff format --check .
 
-      - name: Unit tests
-        run: python -m unittest discover -s tests -t . -v
+      - name: Type check (strict)
+        run: mypy glint tests
+
+      - name: Tests with coverage
+        run: |
+          coverage run -m unittest discover -s tests -t .
+          coverage report
+
+      - name: Performance (1,000 files in under 5 seconds, no tracer)
+        run: python -m unittest tests.test_core.PerformanceTest -v
+
+      - name: Self-test benchmark
+        run: glint selftest
 
       - name: Clean demo must have zero findings
         run: glint scan demo/clean-agent --fail-on low
@@ -50,7 +61,62 @@ jobs:
           )
           assert out.returncode == 1, out.returncode
           found = {f["rule_id"] for f in json.loads(out.stdout)["findings"]}
-          expected = {f"GL-{i:03d}" for i in range(1, 11)}
+          expected = {f"GL-{i:03d}" for i in range(1, 16)}
           missing = expected - found
           assert not missing, f"rules that did not fire: {sorted(missing)}"
           print(f"all {len(expected)} rules fired")
+
+      - name: Glint scans its own repository
+        run: glint scan .
+
+  package:
+    name: Build and install the wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+      - name: Build
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Install the wheel in a clean environment and run it
+        run: |
+          python -m venv /tmp/wheel-env
+          /tmp/wheel-env/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/wheel-env/bin/glint --version
+          /tmp/wheel-env/bin/glint explain GL-011 | head -3
+          /tmp/wheel-env/bin/glint scan "$GITHUB_WORKSPACE/demo/clean-agent" --fail-on low
+
+  action:
+    name: GitHub Action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Clean project passes
+        uses: ./
+        with:
+          path: demo/clean-agent
+          fail-on: low
+      - name: Vulnerable project fails
+        id: vulnerable
+        continue-on-error: true
+        uses: ./
+        with:
+          path: demo/vulnerable-agent
+          sarif-file: vulnerable.sarif
+      - name: Check the vulnerable scan failed and wrote SARIF
+        env:
+          OUTCOME: ${{ steps.vulnerable.outcome }}
+          FINDINGS: ${{ steps.vulnerable.outputs.findings }}
+        run: |
+          test "$OUTCOME" = "failure"
+          test "$FINDINGS" -gt 0
+          test -s vulnerable.sarif
+          echo "action failed as expected with $FINDINGS findings"
